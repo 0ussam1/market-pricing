@@ -1,0 +1,38 @@
+[project]
+name = "backend"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "celery[redis]==5.4",
+    "channels==4.0",
+    "channels-redis==4.2",
+    "daphne==4.1",
+    "django==5.1",
+    "django-cors-headers==4.4",
+    "django-environ>=0.11.2",
+    "django-filter==24.2",
+    "djangorestframework==3.15",
+    "djangorestframework-simplejwt==5.3",
+    "gunicorn==22.0",
+    "mlxtend==0.23",
+    "numpy==1.26",
+    "pandas==2.2",
+    "playwright==1.45",
+    "psycopg2-binary>=2.9.11",
+    "redis==5.0",
+    "scikit-learn==1.5",
+    "scrapy==2.11",
+]
+
+[dependency-groups]
+dev = [
+    "black>=26.3.1",
+    "coverage>=7.13.5",
+    "factory-boy>=3.3.3",
+    "flake8>=7.3.0",
+    "isort>=8.0.1",
+    "mypy>=1.20.1",
+    "pytest>=9.0.3",
+]

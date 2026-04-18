@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+.venv/
+.pytest_cache/
+.coverage
+*.log
+
+# Environment
+.env
+
+# Database
+db.sqlite3
+
+# Node / Frontend
+node_modules/
+
+# Static / Media
+media/
+staticfiles/
+
+# IDE
+.vscode/
+.idea/
+
+project_pdf/
