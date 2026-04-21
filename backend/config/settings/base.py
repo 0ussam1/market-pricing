@@ -80,7 +80,7 @@ DATABASES = {
 }
 
 # Custom User Model
-# AUTH_USER_MODEL = 'auth.User' # To be enabled in T3
+AUTH_USER_MODEL = 'authentication.User'
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
@@ -111,7 +111,7 @@ REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 20,
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'apps.authentication.authenticate.JWTCookieAuthentication',
     ],
 }
 
