@@ -10,7 +10,7 @@ from .base import create_context, parse_price_string
 
 BASE_URL = "https://www.jumia.ma"
 SEARCH_URL = f"{BASE_URL}/catalog/?q={{query}}"
-PRODUCT_CARD_SELECTOR = ".c-product-item"
+PRODUCT_CARD_SELECTOR = "article.prd, .c-product-item"
 MAX_PAGES = 3
 
 
@@ -36,7 +36,8 @@ def _parse_rating(rating_text: str | None) -> float | None:
     if not cleaned:
         return None
 
-    token = cleaned.split(" out")[0].split("/")[0].strip()
+    # Handle "4.5 out of 5" or "4.5 / 5"
+    token = cleaned.split(" out")[0].split("/")[0].split("sur")[0].strip()
     try:
         return float(token)
     except ValueError:
@@ -52,11 +53,12 @@ def extract_jumia_results(html: str) -> list[dict[str, Any]]:
         raw_price = card.css(".prc::text").get()
         price, currency = _parse_price(raw_price)
         url = card.css("a.core::attr(href), a::attr(href)").get()
-        rating = _parse_rating(
-            card.css(
-                ".stars._s::attr(aria-label), .stars::attr(aria-label), .rev::text"
-            ).get()
+        rating_text = (
+            card.css(".stars::attr(aria-label)").get()
+            or card.css(".stars._s::attr(aria-label)").get()
+            or card.css(".rev::text").get()
         )
+        rating = _parse_rating(rating_text)
 
         if not title or not url or price is None:
             continue
@@ -76,24 +78,35 @@ def extract_jumia_results(html: str) -> list[dict[str, Any]]:
 
 
 def _extract_next_page_url(page) -> str | None:
-    next_href = page.locator('a[aria-label="Next Page"]').get_attribute("href")
+    # Try multiple aria-labels for different site languages
+    selector = 'a[aria-label="Next Page"], a[aria-label="Page suivante"]'
+    next_href = page.locator(selector).first.get_attribute("href")
     if not next_href:
         return None
     return urljoin(BASE_URL, next_href)
 
 
-def scrape_jumia(query: str, browser) -> list[dict[str, Any]]:
+def scrape_jumia(query_or_url: str, browser) -> list[dict[str, Any]]:
     context = create_context(browser)
     page = context.new_page()
     results: list[dict[str, Any]] = []
     seen_urls: set[str] = set()
 
     try:
-        next_url = SEARCH_URL.format(query=quote_plus(query))
+        if query_or_url.startswith("http"):
+            next_url = query_or_url
+        else:
+            next_url = SEARCH_URL.format(query=quote_plus(query_or_url))
 
         for _ in range(MAX_PAGES):
             page.goto(next_url, wait_until="domcontentloaded")
-            page.wait_for_selector(PRODUCT_CARD_SELECTOR, timeout=15000)
+            
+            # Wait for either products or an empty state
+            try:
+                page.wait_for_selector(PRODUCT_CARD_SELECTOR, timeout=10000)
+            except Exception:
+                # Might be an empty results page
+                break
 
             for item in extract_jumia_results(page.content()):
                 if item["url"] in seen_urls:
