@@ -1,45 +1,33 @@
-FROM python:3.11-slim
-
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
-    libpq-dev \
-    gcc \
-    curl \
-    && rm -rf /var/lib/apt/lists/*
+FROM mcr.microsoft.com/playwright/python:v1.56.0-noble
 
 # Install uv
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
-# Set working directory
 WORKDIR /app
 
 # Create non-root user
 RUN useradd -m appuser
 
-# Set environment variables for uv to use a specific venv location
+# uv venv
 ENV UV_PROJECT_ENVIRONMENT=/opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
+ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
 
-# Copy dependency files first
+# Copy deps first (layer caching)
 COPY pyproject.toml uv.lock ./
+RUN uv sync --no-install-project
 
-# Install dependencies into /opt/venv
-RUN uv sync --frozen --no-install-project
-
-# Copy the rest of the code
+# Copy source
 COPY . .
 
-# Ensure proper ownership
-RUN chown -R appuser:appuser /app /opt/venv
+# Fix ownership (appuser needs access to pre-installed Playwright browsers)
+RUN chown -R appuser:appuser /app /opt/venv /ms-playwright
 
-# Switch to non-root user
 USER appuser
 
 ENV PYTHONUNBUFFERED=1
 ENV DJANGO_SETTINGS_MODULE=config.settings
 
-# Expose port
 EXPOSE 8000
 
-# Start server
 CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
