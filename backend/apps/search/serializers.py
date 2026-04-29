@@ -31,8 +31,26 @@ class SearchSerializer(serializers.ModelSerializer):
 
         return cleaned_platforms
 
-    def create(self, validated_data):
-        return Search.objects.create(
-            user=self.context["request"].user,
-            **validated_data,
-        )
+
+class SearchCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Search
+        fields = ("id", "query", "platforms", "status")
+        read_only_fields = ("id", "status")
+
+    def validate_platforms(self, value):
+        if not isinstance(value, list) or not value:
+            raise serializers.ValidationError("Platforms must be a non-empty list.")
+        return [str(p).strip() for p in value if str(p).strip()]
+
+
+class SearchListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Search
+        fields = ("id", "query", "platforms", "status", "created_at")
+
+
+class SearchStatusSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Search
+        fields = ("id", "status", "created_at")
