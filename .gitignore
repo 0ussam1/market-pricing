@@ -6,12 +6,14 @@ dist/
 wheels/
 *.egg-info
 .venv/
+backend/.venv/
 .pytest_cache/
 .coverage
 *.log
 
 # Environment
 .env
+*.env.local
 
 # Database
 db.sqlite3
@@ -19,6 +21,7 @@ backend/test_db.sqlite3
 
 # Node / Frontend
 node_modules/
+frontend/dist/
 
 # Static / Media
 media/
@@ -27,7 +30,25 @@ staticfiles/
 # IDE
 .vscode/
 .idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Coverage
+htmlcov/
+.coverage.*
 
 project_pdf/
 
 html/
+
+pytest-cache*
+
+# uv
+uv.lock
